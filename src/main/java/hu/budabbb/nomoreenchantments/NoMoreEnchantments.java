@@ -11,6 +11,9 @@ import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -141,6 +144,22 @@ public class NoMoreEnchantments
             if (stack.getItem() == Items.ENCHANTED_BOOK) {
                 slot.set(new ItemStack(Items.BOOK)); // Replace enchanted book with normal book in the same slot
             }
+        }
+    }
+    @SubscribeEvent
+    public void onRightClickBlock(net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock event) {
+        Player player = event.getPlayer();
+        BlockPos pos = event.getPos();
+
+        if (player == null || player.level == null || pos == null) {
+            return;
+        }
+
+        // Check if right-clicked block is Enchantment Table or Grindstone
+        if (player.level.getBlockState(pos).getBlock() == Blocks.ENCHANTING_TABLE
+                || player.level.getBlockState(pos).getBlock() == Blocks.GRINDSTONE) {
+            event.setCancellationResult(InteractionResult.FAIL); // Cancel the interaction
+            event.setCanceled(true); // Prevent GUI from opening
         }
     }
 }
