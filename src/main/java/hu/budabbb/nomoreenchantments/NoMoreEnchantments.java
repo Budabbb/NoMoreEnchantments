@@ -51,7 +51,7 @@ public class NoMoreEnchantments
     public void onPlayerItemPickup(PlayerEvent.ItemPickupEvent event) {
         Player player = event.getPlayer();
         if (player != null) {
-            replaceEnchantedBook(player);
+            replaceEnchantedItems(player);
         }
     }
 
@@ -61,11 +61,68 @@ public class NoMoreEnchantments
         AbstractContainerMenu container = event.getContainer();
 
         if (player != null && container != null) {
-            replaceEnchantedBooksInContainer(player, container);
+            replaceEnchantedItemsInContainer(player, container);
         }
     }
 
-    private void replaceEnchantedBook(Player player) {
+    private void replaceEnchantedItems(Player player) {
+        replaceEnchantedTools(player);
+        replaceEnchantedArmor(player);
+        replaceEnchantedBooks(player); // Optional if you still want to replace enchanted books in inventory
+    }
+
+    private void replaceEnchantedItemsInContainer(Player player, AbstractContainerMenu container) {
+        replaceEnchantedToolsInContainer(player, container);
+        replaceEnchantedArmorInContainer(player, container);
+        replaceEnchantedBooksInContainer(player, container);
+    }
+
+    private void replaceEnchantedTools(Player player) {
+        List<ItemStack> items = player.getInventory().items;
+
+        for (int i = 0; i < items.size(); i++) {
+            ItemStack stack = items.get(i);
+            if (stack.isEnchanted() && stack.isDamageableItem()) { // Check if item is enchanted and can be damaged (tool/armor)
+                items.set(i, new ItemStack(stack.getItem())); // Replace with unenchanted version
+            }
+        }
+    }
+
+    private void replaceEnchantedToolsInContainer(Player player, AbstractContainerMenu container) {
+        List<net.minecraft.world.inventory.Slot> slots = container.slots;
+
+        for (net.minecraft.world.inventory.Slot slot : slots) {
+            ItemStack stack = slot.getItem();
+            if (stack.isEnchanted() && stack.isDamageableItem()) {
+                slot.set(new ItemStack(stack.getItem())); // Replace with unenchanted version in the same slot
+            }
+        }
+    }
+
+    private void replaceEnchantedArmor(Player player) {
+        // Iterate through armor slots
+        for (ItemStack armorStack : player.getArmorSlots()) {
+            if (armorStack.isEnchanted() && armorStack.isDamageableItem() && isArmor(armorStack.getItem())) {
+                player.setItemSlot(armorStack.getEquipmentSlot(), new ItemStack(armorStack.getItem())); // Replace armor piece with unenchanted version
+            }
+        }
+    }
+
+    private void replaceEnchantedArmorInContainer(Player player, AbstractContainerMenu container) {
+        // Iterate through container slots
+        for (net.minecraft.world.inventory.Slot slot : container.slots) {
+            ItemStack stack = slot.getItem();
+            if (stack.isEnchanted() && stack.isDamageableItem() && isArmor(stack.getItem())) {
+                slot.set(new ItemStack(stack.getItem())); // Replace with unenchanted version in the same slot
+            }
+        }
+    }
+
+    private boolean isArmor(net.minecraft.world.item.Item item) {
+        return item instanceof net.minecraft.world.item.ArmorItem;
+    }
+
+    private void replaceEnchantedBooks(Player player) {
         List<ItemStack> items = player.getInventory().items;
 
         for (int i = 0; i < items.size(); i++) {
@@ -82,8 +139,7 @@ public class NoMoreEnchantments
         for (net.minecraft.world.inventory.Slot slot : slots) {
             ItemStack stack = slot.getItem();
             if (stack.getItem() == Items.ENCHANTED_BOOK) {
-                // Replace enchanted book with a normal book in the same slot
-                slot.set(new ItemStack(Items.BOOK));
+                slot.set(new ItemStack(Items.BOOK)); // Replace enchanted book with normal book in the same slot
             }
         }
     }
